@@ -4,36 +4,15 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-
-import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.ssl.SSLSocketFactory;
-import org.apache.http.impl.client.DefaultHttpClient;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Intent;
-import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -44,7 +23,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.Toast;
 
 /**
@@ -66,10 +44,6 @@ public class MainActivity extends Activity {
 	 * Minimalny okres sprawdzanie lokalizacji u¿ytkownika.
 	 */
 	private static final long MIN_TIME_BW_UPDATES = 1000 * 4;
-	
-	private Button startButton;
-	
-	private boolean isStarted = false;
 	
 	/**
 	 * Plik z zapisanymi kodami promocyjnymi i ich lokalizacj¹.
@@ -158,28 +132,6 @@ public class MainActivity extends Activity {
 			//e.printStackTrace();
 			System.out.println(e);
 		}
-	}
-	
-	public void startOnClick(View view) {
-		//startButton = (Button) this.findViewById(R.id.button3);
-		
-		sendUSSD("TEST!");
-		/*if (!isStarted) {
-			isStarted = true;
-			if (startButton != null) {
-				startButton.setText("Stop application");
-				startButton.setBackgroundColor(-65536);
-			}
-			
-			
-		} else {
-			if (startButton != null) {
-				startButton.setText("Start application");
-				startButton.setBackgroundColor(Color.LTGRAY);
-			}
-			locationManager.removeUpdates(locationListener);
-			isStarted = false;
-		}*/
 	}
 	
 	/**
@@ -272,9 +224,13 @@ public class MainActivity extends Activity {
 		Double lon = _longitude;
 		
 		for (int i = 0; i < latitudes.size(); i++) {
-			if (latitudes.get(i) <= lat+0.0003 && latitudes.get(i) >= lat-0.0003) {
-				if (longitudes.get(i) <= lon+0.0003 && longitudes.get(i) >= lon-0.0003) {
-					showMessage("Kod promocyjny", "Kod: "+promoCodes.get(i)+"\n Lat: "+lat+"\n Lng: "+lon+"\n");
+			if (latitudes.get(i) <= lat+0.0002 && latitudes.get(i) >= lat-0.0002) {
+				if (longitudes.get(i) <= lon+0.0002 && longitudes.get(i) >= lon-0.0002) {
+					new SendUSSD().execute("Kod promocyjny\n Kod: "+promoCodes.get(i)+"\n");
+					//showMessage("Kod promocyjny", "Kod: "+promoCodes.get(i)+"\n Lat: "+lat+"\n Lng: "+lon+"\n");
+					Toast.makeText(getApplicationContext(), 
+							"Kod promocyjny\n Kod: "+promoCodes.get(i)+"\n Lat: "+lat+"\n Lng: "+lon+"\n", 
+							Toast.LENGTH_SHORT);
 					try {
 						OutputStream streamOut = new FileOutputStream(history, true);
 						String historyLine = promoCodes.get(i)+"-"+latitudes.get(i)+"-"+longitudes.get(i)+"\n";
@@ -308,74 +264,11 @@ public class MainActivity extends Activity {
 		alertDialog.show();
 	}
 	
-	public void sendUSSD(String msg){
-        
-		String to = "789101781";
-	   	String adres = "https://api2.orange.pl/sendussd/?to="+to+"&msg="+msg ;
-	   	try {    	 
-	   		System.out.println("!!!!!1");
-	      	  HttpHost targetHost = new HttpHost("api2.orange.pl", 443, "https"); 
-	      	System.out.println("!!!!!2");
-	      	  //HttpClient client = new DefaultHttpClient();  
-	      	  DefaultHttpClient client = new DefaultHttpClient();  
-	      	  client.getCredentialsProvider().setCredentials(new AuthScope(targetHost.getHostName(), targetHost.getPort()), new UsernamePasswordCredentials("48789101781", "TSS7C347ENHMLE"));
-	      	System.out.println("!!!!!3");
-	      	  
-	      	 // HttpClient httpclient = sslClient(client);
-	      	 sslClient(client);  // ustaw certyfikacj¹ SSL dla danego klienta
-	      	 
-	      	System.out.println("!!!!!4");
-	      	 //Log.i("USSD","przed wys³aniem");
-	      	 HttpGet httpget = new HttpGet(adres); 
-	      	System.out.println("!!!!!5");
-	      	 //Log.i("USSD","po wys³aniem");
-	      	 HttpResponse response = client.execute( httpget);
-	      	System.out.println("!!!!!6");
-	        //Log.i("USSD",response.getStatusLine().toString());
-	       	 
-
-	   	}catch (IllegalStateException e) {
-	   		//Log.e("LOCATION", "IllegalStateException: "+e );
-	   		System.out.println("!!!!!"+e);
-	   	/*}catch (SAXException e) {
-	   		Log.e("LOCATION", "SAXException: "+e );*/
-	   	}catch (ClientProtocolException e) {
-	   		//Log.e("LOCATION", "ClientProtocolException: "+e );
-	   		System.out.println("!!!!!"+e);
-	   	}catch (IOException e) {
-	   		//Log.e("LOCATION", "IOException: "+e );
-	   		System.out.println("!!!!!"+e);
-	   	}catch (Exception e) {
-	   		System.out.println("!!!!?"+e);
-	   	}
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		locationManager.removeUpdates(locationListener);
 	}
-	
-	private void sslClient(HttpClient client) {
-        try {
-            X509TrustManager tm = new X509TrustManager() { 
-                public void checkClientTrusted(X509Certificate[] xcs, String string) throws CertificateException {
-                }
-
-                public void checkServerTrusted(X509Certificate[] xcs, String string) throws CertificateException {
-                }
-
-                public X509Certificate[] getAcceptedIssuers() {
-                    return null;
-                }
-            };
-            SSLContext ctx = SSLContext.getInstance("TLS");
-            ctx.init(null, new TrustManager[]{tm}, null);
-            MySSLSocketFactory ssf = new MySSLSocketFactory(ctx);
-            ssf.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
-            
-            ClientConnectionManager ccm = client.getConnectionManager();
-            SchemeRegistry sr = ccm.getSchemeRegistry();
-            sr.register(new Scheme("https", ssf, 443));
-          //  return new DefaultHttpClient(ccm, client.getParams());
-        } catch (Exception ex) {
-           // return null;
-        }
-    }
 	
 	
 	@Override

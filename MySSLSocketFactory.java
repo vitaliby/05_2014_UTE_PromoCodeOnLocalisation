@@ -17,6 +17,10 @@ import javax.net.ssl.X509TrustManager;
 
 import org.apache.http.conn.ssl.SSLSocketFactory;
 
+/**
+ * Klasa, która s³u¿y do uwierzytelnienia klienta na serwerze
+ *
+ */
 public class MySSLSocketFactory extends SSLSocketFactory {
     SSLContext sslContext = SSLContext.getInstance("TLS");
 
