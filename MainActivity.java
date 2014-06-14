@@ -19,10 +19,10 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Toast;
 
 /**
@@ -82,6 +82,11 @@ public class MainActivity extends Activity {
 
 	private LocationManager locationManager;
 	private LocationListener locationListener;
+	
+	/**
+	 * Flaga, który mówa czy GPS jest w³¹czony na telefonie komórkowym
+	 * u¿ytkownika.
+	 */
 	private boolean isGPSEnabled;
 
 	/**
@@ -93,6 +98,14 @@ public class MainActivity extends Activity {
 	 * Aktualna pozycja (d³ugoœæ geograficzna) u¿ytkownika.
 	 */
 	protected static Double latitude;
+	
+	/**
+	 * Grupa przycisków typu RadioButton. Pozwala u¿ytkownikowi
+	 * wybraæ w jaki sposób otrzymywaæ powiadomienia o kodach promocyjnych.
+	 * Do wyboru jest notyfikacja USSD lub SMS.
+	 */
+	private RadioGroup radioGroup1;
+	private RadioButton radioUssd;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -186,8 +199,16 @@ public class MainActivity extends Activity {
 	}
 	
 	public void testUssdOnClick(View view) {
-		Toast.makeText(getApplicationContext(), promoCodes.get(1), Toast.LENGTH_SHORT).show();
-		new SendUSSD().execute(promoCodes.get(1));
+		
+		radioGroup1 = (RadioGroup) findViewById(R.id.radioGroup1);
+		Integer selectedId = radioGroup1.getCheckedRadioButtonId();
+		
+		radioUssd = (RadioButton) findViewById(R.id.radioButton1);
+		if (selectedId == radioUssd.getId()) {
+			new SendUSSD().execute(promoCodes.get(4));
+		} else {
+			new SendSMS().execute(promoCodes.get(4));
+		}
 	}
 	
 	/**
@@ -259,6 +280,10 @@ public class MainActivity extends Activity {
 		Double lat = _latitude;
 		Double lon = _longitude;
 		
+		radioGroup1 = (RadioGroup) findViewById(R.id.radioGroup1);
+		Integer selectedId = radioGroup1.getCheckedRadioButtonId();
+		radioUssd = (RadioButton) findViewById(R.id.radioButton1);
+		
 		for (int i = 0; i < latitudes.size(); i++) {
 			if (latitudes.get(i) <= lat+0.0002 && latitudes.get(i) >= lat-0.0002) {
 				if (longitudes.get(i) <= lon+0.0002 && longitudes.get(i) >= lon-0.0002) {
@@ -269,12 +294,11 @@ public class MainActivity extends Activity {
 						Toast.makeText(getApplicationContext(), e.toString(), Toast.LENGTH_SHORT).show();
 					}
 					
-					//new SendUSSD().execute("Kod promo: "+promoCodes.get(i));
-					new SendUSSD().execute(msg);
-					//showMessage("Kod promocyjny", "Kod: "+promoCodes.get(i)+"\n Lat: "+lat+"\n Lng: "+lon+"\n");
-					/*Toast.makeText(getApplicationContext(), 
-							"Kod promocyjny\n Kod: "+promoCodes.get(i)+"\n Lat: "+lat+"\n Lng: "+lon+"\n", 
-							Toast.LENGTH_SHORT);*/
+					if (selectedId == radioUssd.getId()) {
+						new SendUSSD().execute(msg);
+					} else {
+						new SendSMS().execute(msg);
+					}
 					try {
 						if (!historyCodes.contains(promoCodes.get(i))) {
 							OutputStream streamOut = new FileOutputStream(history, true);
@@ -317,27 +341,6 @@ public class MainActivity extends Activity {
 		super.onDestroy();
 		locationManager.removeUpdates(locationListener);
 	}
-	
-	
-	/*@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.main, menu);
-		return true;
-	}
-
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		// Handle action bar item clicks here. The action bar will
-		// automatically handle clicks on the Home/Up button, so long
-		// as you specify a parent activity in AndroidManifest.xml.
-		int id = item.getItemId();
-		if (id == R.id.action_settings) {
-			return true;
-		}
-		return super.onOptionsItemSelected(item);
-	}*/
 
 	public static class PlaceholderFragment extends Fragment {
 

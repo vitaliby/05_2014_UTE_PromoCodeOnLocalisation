@@ -9,7 +9,6 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.HttpClient;
@@ -20,13 +19,14 @@ import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.client.DefaultHttpClient;
 
+import android.os.AsyncTask;
 
 /**
  * Klasa pozwalaj¹ca wysy³aæ u¿ytkownikowi aplikacji
  * wiadomoœci SMS. Uruchamia proces wysy³ania w osobnym w¹tku. 
  *
  */
-public class SendSMS {
+public class SendSMS extends AsyncTask<String, Void, Object> {
 	
 	/**
 	 * Metoda wysy³aj¹ca u¿ytkownikowi wiadomoœæ SMS
@@ -45,7 +45,7 @@ public class SendSMS {
 	      	 sslClient(client);
 
 	      	 HttpGet httpget = new HttpGet(adres); 
-	      	 HttpResponse response = client.execute( httpget);
+	      	 client.execute( httpget);
 	       	 
 	   	}catch (Exception e) {
 	   		System.out.println("!!!!!"+e);

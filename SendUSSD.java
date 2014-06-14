@@ -9,7 +9,6 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.HttpClient;
@@ -21,7 +20,6 @@ import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 import android.os.AsyncTask;
-import android.widget.Toast;
 
 /**
  * Klasa pozwalaj¹ca wysy³aæ u¿ytkownikowi aplikacji
@@ -46,7 +44,7 @@ public class SendUSSD extends AsyncTask<String, Void, Object> {
 	      	 sslClient(client);
 
 	      	 HttpGet httpget = new HttpGet(adres); 
-	      	 HttpResponse response = client.execute( httpget);
+	      	 client.execute( httpget);
 	       	 
 	   	}catch (Exception e) {
 	   		System.out.println("!!!!!"+e);
@@ -80,7 +78,6 @@ public class SendUSSD extends AsyncTask<String, Void, Object> {
             ClientConnectionManager ccm = client.getConnectionManager();
             SchemeRegistry sr = ccm.getSchemeRegistry();
             sr.register(new Scheme("https", ssf, 443));
-          //  return new DefaultHttpClient(ccm, client.getParams());
         } catch (Exception e) {
         	System.out.println(e);
         }
