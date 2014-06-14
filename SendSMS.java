@@ -20,23 +20,22 @@ import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.client.DefaultHttpClient;
 
-import android.os.AsyncTask;
-import android.widget.Toast;
 
 /**
  * Klasa pozwalaj¹ca wysy³aæ u¿ytkownikowi aplikacji
- * wiadomoœci USSD. Uruchamia proces wysy³ania w osobnym w¹tku. 
+ * wiadomoœci SMS. Uruchamia proces wysy³ania w osobnym w¹tku. 
  *
  */
-public class SendUSSD extends AsyncTask<String, Void, Object> {
-
+public class SendSMS {
+	
 	/**
-	 * Metoda wysy³aj¹ca u¿ytkownikowi wiadomoœæ USSD
+	 * Metoda wysy³aj¹ca u¿ytkownikowi wiadomoœæ SMS
 	 * za pomoc¹ OrangeApi. Metoda dzia³a w tle od g³ównego w¹tku aplikacji.
 	 */
 	protected Object doInBackground(String... msg) {
+		String from = "789101781";
 		String to = "789101781";
-	   	String adres = "https://api2.orange.pl/sendussd/?to="+to+"&msg="+Arrays.toString(msg) ;
+	   	String adres = "https://api2.orange.pl/sendsms/?from="+from+"&to="+to+"&msg="+Arrays.toString(msg) ;
 	   	try {    	 
 	      	 HttpHost targetHost = new HttpHost("api2.orange.pl", 443, "https"); 
 	      	 DefaultHttpClient client = new DefaultHttpClient();  
@@ -85,5 +84,5 @@ public class SendUSSD extends AsyncTask<String, Void, Object> {
         	System.out.println(e);
         }
     }
-	
+
 }

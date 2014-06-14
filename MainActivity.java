@@ -73,6 +73,12 @@ public class MainActivity extends Activity {
 	 * znajduje siê kod promocyjny.
 	 */
 	private ArrayList<Double> longitudes = new ArrayList<Double>();
+	
+	/**
+	 * Kontener przechowuj¹cy historiê kodów promocyjnych. 
+	 * Kody, które zosta³y ju¿ wys³ane u¿ytkownikowi.
+	 */
+	private ArrayList<String> historyCodes = new ArrayList<String>();
 
 	private LocationManager locationManager;
 	private LocationListener locationListener;
@@ -99,6 +105,7 @@ public class MainActivity extends Activity {
 		}
 
 		readPromoFile();
+		readHistoryFile();
 		
 		startLocListener();
 		
@@ -110,7 +117,7 @@ public class MainActivity extends Activity {
 	 */
 	private void readPromoFile() {
 		promo = new File(Environment.getExternalStorageDirectory(), filename);
-		history = new File(Environment.getExternalStorageDirectory(), filename1);
+		
 		try {
 			InputStream streamIn = new FileInputStream(promo);
 			BufferedReader reader = new BufferedReader(new InputStreamReader(streamIn));
@@ -126,10 +133,34 @@ public class MainActivity extends Activity {
 					showMessage("B³¹d!", "SprawdŸ poprawnoœæ pliku z kodami promocji.");
 				}
 				line = reader.readLine();
-	        } 
+	        }
+			Toast.makeText(getApplicationContext(), "Plik zosta³ przeczytany", Toast.LENGTH_SHORT).show();;
 			reader.close();
 		} catch (Exception e) {
 			//e.printStackTrace();
+			System.out.println(e);
+		}
+	}
+	
+	private void readHistoryFile() {
+		history = new File(Environment.getExternalStorageDirectory(), filename1);
+		
+		try {
+			InputStream streamIn = new FileInputStream(history);
+			BufferedReader reader = new BufferedReader(new InputStreamReader(streamIn));
+			
+			String line = reader.readLine();
+			while(line != null){
+				String[] splittedLine = line.split("-");
+				if (splittedLine.length == 3) {
+					historyCodes.add(splittedLine[0]);
+				} else {
+					showMessage("B³¹d!", "SprawdŸ poprawnoœæ pliku z histori¹ kodów promocyjnych.");
+				}
+				line = reader.readLine();
+			}
+			reader.close();
+		} catch (Exception e) {
 			System.out.println(e);
 		}
 	}
@@ -152,6 +183,11 @@ public class MainActivity extends Activity {
 	public void mapOnClick(View view) {
 		Intent intent = new Intent(this, MapActivity.class);
 		startActivity(intent);
+	}
+	
+	public void testUssdOnClick(View view) {
+		Toast.makeText(getApplicationContext(), promoCodes.get(1), Toast.LENGTH_SHORT).show();
+		new SendUSSD().execute(promoCodes.get(1));
 	}
 	
 	/**
@@ -189,7 +225,7 @@ public class MainActivity extends Activity {
 		        Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 
 		        if (location != null) {
-		        	Toast.makeText(getApplicationContext(), "GPS ON", Toast.LENGTH_SHORT).show();
+		        	//Toast.makeText(getApplicationContext(), "GPS ON", Toast.LENGTH_SHORT).show();
 		        		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 
 		        				MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, locationListener);
 		        		longitude = location.getLongitude();
@@ -199,7 +235,7 @@ public class MainActivity extends Activity {
 		                location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
 
 		                if (location != null) {
-		                	Toast.makeText(getApplicationContext(), "NETWORK ON", Toast.LENGTH_SHORT).show();
+		                	//Toast.makeText(getApplicationContext(), "NETWORK ON", Toast.LENGTH_SHORT).show();
 		                		locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 
 		                				MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, locationListener);
 		                		longitude = location.getLongitude();
@@ -226,16 +262,28 @@ public class MainActivity extends Activity {
 		for (int i = 0; i < latitudes.size(); i++) {
 			if (latitudes.get(i) <= lat+0.0002 && latitudes.get(i) >= lat-0.0002) {
 				if (longitudes.get(i) <= lon+0.0002 && longitudes.get(i) >= lon-0.0002) {
-					new SendUSSD().execute("Kod promocyjny\n Kod: "+promoCodes.get(i)+"\n");
-					//showMessage("Kod promocyjny", "Kod: "+promoCodes.get(i)+"\n Lat: "+lat+"\n Lng: "+lon+"\n");
-					Toast.makeText(getApplicationContext(), 
-							"Kod promocyjny\n Kod: "+promoCodes.get(i)+"\n Lat: "+lat+"\n Lng: "+lon+"\n", 
-							Toast.LENGTH_SHORT);
+					String msg = promoCodes.get(i);
 					try {
-						OutputStream streamOut = new FileOutputStream(history, true);
-						String historyLine = promoCodes.get(i)+"-"+latitudes.get(i)+"-"+longitudes.get(i)+"\n";
-						streamOut.write(historyLine.getBytes());
-						streamOut.close();
+						Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
+					} catch (Exception e) {
+						Toast.makeText(getApplicationContext(), e.toString(), Toast.LENGTH_SHORT).show();
+					}
+					
+					//new SendUSSD().execute("Kod promo: "+promoCodes.get(i));
+					new SendUSSD().execute(msg);
+					//showMessage("Kod promocyjny", "Kod: "+promoCodes.get(i)+"\n Lat: "+lat+"\n Lng: "+lon+"\n");
+					/*Toast.makeText(getApplicationContext(), 
+							"Kod promocyjny\n Kod: "+promoCodes.get(i)+"\n Lat: "+lat+"\n Lng: "+lon+"\n", 
+							Toast.LENGTH_SHORT);*/
+					try {
+						if (!historyCodes.contains(promoCodes.get(i))) {
+							OutputStream streamOut = new FileOutputStream(history, true);
+							String historyLine = promoCodes.get(i)+"-"+latitudes.get(i)+"-"+longitudes.get(i)+"\n";
+							streamOut.write(historyLine.getBytes());
+							streamOut.close();
+						} else {
+							Toast.makeText(getApplicationContext(), "Dany kod promocyjny ju¿ istnieje.", Toast.LENGTH_SHORT).show();
+						}
 					} catch (Exception e) {
 						Toast.makeText(getApplicationContext(), "B³¹d w zapisywaniu historii.", Toast.LENGTH_SHORT).show();
 					}
@@ -271,7 +319,7 @@ public class MainActivity extends Activity {
 	}
 	
 	
-	@Override
+	/*@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 
 		// Inflate the menu; this adds items to the action bar if it is present.
@@ -289,7 +337,7 @@ public class MainActivity extends Activity {
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
-	}
+	}*/
 
 	public static class PlaceholderFragment extends Fragment {
 

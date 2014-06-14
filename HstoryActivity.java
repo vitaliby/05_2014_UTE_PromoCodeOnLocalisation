@@ -124,7 +124,7 @@ public class HstoryActivity extends Activity {
 				String line = reader.readLine();
 				while(line != null){
 					String[] splittedLine = line.split("-");
-					String beatyLine = "Kod: "+splittedLine[0]+", ["+splittedLine[1]+"; "+splittedLine[2]+"]\n";
+					String beatyLine = "Kod: "+splittedLine[0]+"\n";
 					addItemToListView(beatyLine);
 					line = reader.readLine();
 		        } 
